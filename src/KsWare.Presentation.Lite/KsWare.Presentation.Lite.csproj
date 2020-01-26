@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Copyright © by KsWare. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/KsWare/KsWare.Presentation.Lite</PackageProjectUrl>
+    <Description>KsWare.Presentation.Lite</Description>
+    <Company>KsWare</Company>
+    <Authors>KsWare</Authors>
+    <Version>0.0.0</Version>
+    <PackageLicenseExpression>LGPL-3.0-only</PackageLicenseExpression>
+    <PackageReleaseNotes>experimental</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Properties\KsWare.Presentation.Public.snk</AssemblyOriginatorKeyFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/KsWare/KsWare.Presentation.Lite</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(TargetName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(TargetName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\icon.png" Link="Properties\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
