@@ -1,18 +1,36 @@
-﻿using System;
+﻿// ***********************************************************************
+// Assembly         : KsWare.Presentation.Lite
+// Author           : SchreinerK
+// Created          : 2020-01-26
+//
+// Last Modified By : SchreinerK
+// Last Modified On : 2020-01-28
+// ***********************************************************************
+// <copyright file="BootstrapperBase.cs" company="KsWare">
+//     Copyright © by KsWare. All rights reserved.
+// </copyright>
+// <summary></summary>
+// ***********************************************************************
+using System;
 using System.ComponentModel;
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Baml2006;
-using System.Windows.Markup;
 using System.Windows.Threading;
-using System.Xaml;
 
 namespace KsWare.Presentation.Lite {
 
+	/// <summary>
+	/// The base class for an bootstrapper.
+	/// Implements the <see cref="System.Windows.ResourceDictionary" />
+	/// </summary>
+	/// <seealso cref="System.Windows.ResourceDictionary" />
 	public abstract class BootstrapperBase : ResourceDictionary {
 
 		private Dispatcher Dispatcher => Application.Current.Dispatcher; // TODO avoid Application.Current usage
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BootstrapperBase"/> class.
+		/// </summary>
 		protected BootstrapperBase() {
 			if(DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
 
@@ -20,45 +38,35 @@ namespace KsWare.Presentation.Lite {
 			Application.Current.Exit += (s, args) => OnExit(args);
 		}
 
+
+		/// <summary>
+		/// Called on application startup.
+		/// </summary>
+		/// <seealso cref="Application.Startup"/>
+		protected abstract void OnStartup();
+
+		/// <summary>
+		/// Called on application exit.
+		/// </summary>
+		/// <param name="args">The <see cref="ExitEventArgs"/> instance containing the event data.</param>
+		/// <seealso cref="Application.Exit"/>
 		protected virtual void OnExit(ExitEventArgs args) {
 			
 		}
 
-		protected abstract void OnStartup();
-
-		public void TestNoCodeBehind(Uri startupUri) {
-			object view;
-			var streamResourceInfo = Application.GetResourceStream(startupUri);
-
-			// var xamlReader = new XamlReader();
-			// view = xamlReader.LoadAsync(streamResourceInfo.Stream);
-
-			using (var bamlReader = new Baml2006Reader(streamResourceInfo.Stream)) {
-				using (var writer = new XamlObjectWriter(bamlReader.SchemaContext)) {
-					while (bamlReader.Read()) writer.WriteNode(bamlReader);
-					view = writer.Result;
-				}
+		/// <summary>
+		/// Shows the view for the specified view model.
+		/// </summary>
+		/// <param name="viewModel">The view model.</param>
+		/// <remarks><para>The view must derive from <see cref="Window"/></para></remarks>
+		[SuppressMessage("ReSharper", "FlagArgument", Justification = "shut up")]
+		protected void Show(object viewModel) {
+			var view = ViewLocator.Default.CreateView(viewModel);
+			if (view == null) throw new InvalidOperationException("View not loaded!");
+			switch (view) {
+				case Window w: w.Show(); return;
+				default: throw new InvalidOperationException("View can not be shown.");
 			}
-
-
-			var mi = view.GetType().GetMethod("InitializeComponent", BindingFlags.Instance | BindingFlags.Public);
-			// only if x:Class is specified
-			mi?.Invoke(view,new object[0]);
-			((Window)view).Show();
-		}
-
-		protected bool? Show(object viewModel, bool asDialog=false) {
-			var viewLocator = new ViewLocator();
-			var si = viewLocator.GetViewResource(viewModel.GetType());
-			if(si==null) throw new InvalidOperationException("View not found!");
-			object view = ViewLocatorHelper.Read(si);
-			if(view==null) throw new InvalidOperationException("View not loaded!");
-			if (view is FrameworkElement fe) fe.DataContext = viewModel;
-			if(view is Window w) {
-				if(asDialog) return w.ShowDialog(); 
-				w.Show(); return null;
-			}
-			throw new InvalidOperationException("View can not be shown.");
 		}
 
 	}

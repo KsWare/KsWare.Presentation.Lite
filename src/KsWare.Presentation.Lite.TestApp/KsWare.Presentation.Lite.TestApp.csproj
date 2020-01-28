@@ -8,7 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Page Remove="!%28Special%24%29\UserControl1.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\KsWare.Presentation.Lite\KsWare.Presentation.Lite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="!(Special$)\UserControl1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

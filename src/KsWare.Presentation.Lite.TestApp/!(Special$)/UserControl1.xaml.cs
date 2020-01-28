@@ -17,7 +17,7 @@ namespace ns.__Special__ {
 	/// </summary>
 	public partial class UserControl1 : UserControl {
 		public UserControl1() {
-			InitializeComponent();
+			// InitializeComponent();
 		}
 	}
 }
