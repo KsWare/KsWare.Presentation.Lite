@@ -20,16 +20,17 @@ namespace KsWare.Presentation.Lite {
 		private readonly Dictionary<Type, Type> _viewModelViewMap = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> _viewViewModelMap = new Dictionary<Type, Type>();
 
-		public override object GetView(object viewModel) => LoadViewWithActivator(viewModel);
+		public override object GetView(object viewModelOrType) => LoadViewWithActivator(viewModelOrType);
 
 		private object LoadViewWithActivator(object viewModel) {
-			var viewModelType = viewModel.GetType();
+			if (viewModel == null) return null;
+			var viewModelType = viewModel is Type type ? type : viewModel.GetType();
 			var viewType = GetViewType(viewModelType);
 			if (viewType == null) return null;
 
 			var view = Activator.CreateInstance(viewType);
 			ViewLocatorHelper.InitializeComponent(view);
-			if(view is FrameworkElement fe) fe.DataContext=viewModel;
+			if(view is FrameworkElement fe && !(viewModel is Type)) fe.DataContext=viewModel;
 			return view;
 		}
 

@@ -37,9 +37,9 @@ namespace KsWare.Presentation.Lite {
 		/// <summary>
 		/// Creates the view for the specified view model.
 		/// </summary>
-		/// <param name="viewModel">The view model.</param>
+		/// <param name="viewModelOrType">The view model.</param>
 		/// <returns>The matching view or <c>null if no view was found.</c></returns>
-		public object CreateView(object viewModel) => Strategy.GetView(viewModel);
+		public object CreateView(object viewModelOrType) => Strategy.GetView(viewModelOrType);
 	}
 
 }

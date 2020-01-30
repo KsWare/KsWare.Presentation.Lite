@@ -20,7 +20,7 @@ namespace KsWare.Presentation.Lite {
 		public string[] ViewFolderNames { get; set; } = { "", "View" };
 		public string[] ViewModelFolderNames { get; set; } = { "", "ViewModel" };
 
-		public abstract object GetView(object viewModel);
+		public abstract object GetView(object viewModelOrType);
 	}
 
 }

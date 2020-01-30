@@ -14,6 +14,8 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace KsWare.Presentation.Lite {
@@ -30,7 +32,6 @@ namespace KsWare.Presentation.Lite {
 		/// </summary>
 		public static readonly ViewModelViewConverter Default=new ViewModelViewConverter();
 
-
 		/// <inheritdoc />
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
 			if (value == null) {
@@ -44,16 +45,38 @@ namespace KsWare.Presentation.Lite {
 				Debug.WriteLine($"ViewModelViewConverter: No view for: {value?.GetType().FullName ?? "null"}");
 				return null;
 			}
-			if(!targetType.IsInstanceOfType(view))
-				throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {view?.GetType().FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}, Converter: {nameof(ViewModelViewConverter)}");
+
+			if (targetType == typeof(DataTemplate)) {
+				return ViewLocatorHelper.CreateDataTemplateFromUIElement((UIElement) view);
+			}
+			if (targetType == typeof(HierarchicalDataTemplate)) {
+				throw new NotImplementedException($"Conversion to HierarchicalDataTemplate is not implemented. Converter: {GetType().FullName}");
+				// return ViewLocatorHelper.CreateHierarchicalDataTemplateFromUIElement((UIElement)view);
+			}
+			if (targetType == typeof(ControlTemplate)) {
+				return ViewLocatorHelper.CreateControlTemplateFromUIElement((UIElement)view);
+			}			
+			if (targetType == typeof(ItemContainerTemplate)) {
+				throw new NotImplementedException($"Conversion to ItemContainerTemplate is not implemented. Converter: {GetType().FullName}");
+				// return ViewLocatorHelper.CreateItemContainerTemplateFromUIElement((UIElement)view);
+			}
+			if (targetType.IsInstanceOfType(view)) {
+				return view;
+			}
+
+			throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {view?.GetType().FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}, Converter: {nameof(ViewModelViewConverter)}");
 			
-			return view;
+			
 		}
 
 		/// <inheritdoc />
-		/// <exception cref="NotImplementedException"></exception>
+		/// <exception cref="NotSupportedException"></exception>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-			throw new NotSupportedException($"{nameof(ViewModelViewConverter)}.ConvertBack is not supported.");
+			throw new NotSupportedException($"ConvertBack is not supported. Converter: {GetType().FullName}");
+		}
+
+		private void Trace(string value) {
+
 		}
 
 	}

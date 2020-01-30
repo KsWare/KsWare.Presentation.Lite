@@ -9,6 +9,7 @@
 - [(Debug)Binding](##(Debug)Binding))
 - [DebugHint](##DebugHint)
 - [ObjectDebugExtensions](##ObjectDebugExtensions)
+- [ViewModelPresenterExtension](##ViewModelPresenterExtension)
 
 ## NotifyPropertyChangedBase
 Base class which implements INotifyPropertyChanged.
@@ -29,9 +30,15 @@ The ViewModelPresenter presents the matching view for the current data context.
 ```xml
 <ViewModelPresenter/>
 ```
+## ViewModelPresenterExtension
+```xml
+<ListBox 
+    ItemsSource="{Items}"
+	ItemTemplate="{ViewModelPresenter DataType={x:Type MyViewModel}, ViewTypeHint={x:Type MyView}}" />
+```
 
 ## ViewModelViewConverter
-A ValueConverter to convert a ViewModel into the matching View.
+A ValueConverter to convert a ViewModel into the matching View. Supports also DataTemplate and ControlTemplate as TargetType and accepts also a Type as value.
 
 _used by ViewModelPresenter._
 

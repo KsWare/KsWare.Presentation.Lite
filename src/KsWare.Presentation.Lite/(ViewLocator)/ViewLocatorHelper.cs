@@ -21,7 +21,9 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Text;
+using System.Windows;
 using System.Windows.Baml2006;
+using System.Windows.Controls;
 using System.Windows.Resources;
 using System.Xaml;
 using System.Xml;
@@ -218,6 +220,12 @@ namespace KsWare.Presentation.Lite {
 		/// <param name = "element">The element to initialize</param>
 		/// <remarks>When a view does not contain a code-behind file, we need to call InitializeComponent.</remarks>
 		public static void InitializeComponent(object element) {
+
+			if (element is System.Windows.Markup.IComponentConnector componentConnector) {
+				componentConnector.InitializeComponent();
+				return;
+			}
+
 			// var method = element.GetType()
 			// 	.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
 			// method?.Invoke(element, null);
@@ -227,6 +235,50 @@ namespace KsWare.Presentation.Lite {
                 .SingleOrDefault(m => m.GetParameters().Length == 0);
             method?.Invoke(element, null);
 
+		}
+
+		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
+		public static DataTemplate CreateDataTemplateFromUIElement(UIElement content) {
+			var contentXaml = SerializeToXaml(content);
+			var templateXaml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+{contentXaml}
+</DataTemplate>";
+
+
+			var sr = new StringReader(templateXaml);
+			var xr = XmlReader.Create(sr);
+			var dataTemplate = (DataTemplate)XamlReader.Load(xr);
+			return dataTemplate;
+		}
+
+		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
+		public static ControlTemplate CreateControlTemplateFromUIElement(UIElement content) {
+			var contentXaml = SerializeToXaml(content);
+			var templateXaml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+{contentXaml}
+</ControlTemplate>";
+
+
+			var sr = new StringReader(templateXaml);
+			var xr = XmlReader.Create(sr);
+			var controlTemplate = (ControlTemplate)XamlReader.Load(xr);
+			return controlTemplate;
+		}
+
+		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
+		public static string SerializeToXaml(UIElement element) {
+			var xaml = System.Windows.Markup.XamlWriter.Save(element);
+
+			using (var stream = new MemoryStream()) {
+				using (var streamWriter = new StreamWriter(stream, Encoding.UTF8, 64 * 1024, true)) {
+					streamWriter.Write(xaml);
+				}
+
+				stream.Position = 0;
+				return new StreamReader(stream).ReadToEnd();
+			}
 		}
 
 	}

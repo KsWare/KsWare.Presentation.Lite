@@ -28,24 +28,20 @@ namespace KsWare.Presentation.Lite {
 		private readonly Dictionary<Type, Uri> _viewModelViewResourceUriMap = new Dictionary<Type, Uri>();
 		private readonly AssemblyInfoCache _assemblyInfo = new AssemblyInfoCache();
 
-		public override object GetView(object viewModel) {
-			if (viewModel == null) return null;
-			var view = LoadViewFromResource(viewModel);
-
-			if (view is System.Windows.Markup.IComponentConnector componentConnector)
-				componentConnector.InitializeComponent();
-			if (view is FrameworkElement frameworkElement)
-				frameworkElement.DataContext = viewModel;
-
-			return view;
-		}
+		public override object GetView(object viewModelOrType) => LoadViewFromResource(viewModelOrType);
 
 		private object LoadViewFromResource(object viewModel) {
-			var viewModelType = viewModel.GetType();
+			if (viewModel == null) return null;
+			var viewModelType = viewModel is Type type ? type : viewModel.GetType();
 			var sri = FindViewResource(viewModelType);
 			if (sri == null) return null;
 			var view = ViewLocatorHelper.ReadResource(sri,()=>$"ViewModel: {viewModelType.FullName}");
 			sri.Stream.DeleteDebugInformation();
+
+			ViewLocatorHelper.InitializeComponent(view);
+			if (view is FrameworkElement frameworkElement && !(viewModel is Type))
+				frameworkElement.DataContext = viewModel;
+
 			return view;
 		}
 

@@ -48,6 +48,7 @@ namespace KsWare.Presentation.Lite.MarkupExtensions {
 		public override object ProvideValue(IServiceProvider serviceProvider) {
 			// ITypeDescriptorContext, IServiceProvider, IXamlTypeResolver, IUriContext, IAmbientProvider, IXamlSchemaContextProvider, IRootObjectProvider, IXamlNamespaceResolver, IProvideValueTarget, IXamlNameResolver, IDestinationTypeProvider
 			// 
+			// TODO use new DebugInformation(serviceProvider);
 			var uriContext =(IUriContext)serviceProvider.GetService(typeof(IUriContext));
 			var xamlLIneInfo=(IXamlLineInfo)serviceProvider.GetService(typeof(IXamlLineInfo));
 			var xamlLineInfoText= xamlLIneInfo?.HasLineInfo??false ? $"Line: {xamlLIneInfo.LineNumber}, Position: {xamlLIneInfo.LinePosition}" :null;
@@ -81,12 +82,6 @@ namespace KsWare.Presentation.Lite.MarkupExtensions {
 		}
 
 		// conditional Format
-		/// <summary>
-		/// fs the specified format.
-		/// </summary>
-		/// <param name="format">The format.</param>
-		/// <param name="value">The value.</param>
-		/// <returns>System.String.</returns>
 		private static string F(string format, string value) {
 			if (string.IsNullOrEmpty(value)) return "";
 			if (format?.Contains("{0}")??false) return string.Format(format, value);
