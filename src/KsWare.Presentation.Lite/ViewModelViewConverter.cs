@@ -12,6 +12,7 @@
 // <summary></summary>
 // ***********************************************************************
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -32,14 +33,19 @@ namespace KsWare.Presentation.Lite {
 
 		/// <inheritdoc />
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-			if (value == null && !targetType.IsClass)
+			if (value == null) {
+				if (targetType.IsClass) return null;
 				throw new InvalidOperationException($"The conversion is not supported. Value: null, TargetType: {targetType?.GetType().FullName ?? "null"}");
+			}
 
 			var view = ViewLocator.Default.CreateView(value);
-			if (view == null) 
-				throw new NullReferenceException($"Matching view not available. Value: {value?.GetType().FullName ?? "null"}");
+			if (view == null) {
+				// throw new NullReferenceException($"Matching view not available. Value: {value?.GetType().FullName ?? "null"}");
+				Debug.WriteLine($"ViewModelViewConverter: No view for: {value?.GetType().FullName ?? "null"}");
+				return null;
+			}
 			if(!targetType.IsInstanceOfType(view))
-				throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {view?.GetType().FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}");
+				throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {view?.GetType().FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}, Converter: {nameof(ViewModelViewConverter)}");
 			
 			return view;
 		}
@@ -47,7 +53,7 @@ namespace KsWare.Presentation.Lite {
 		/// <inheritdoc />
 		/// <exception cref="NotImplementedException"></exception>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-			throw new NotImplementedException();
+			throw new NotSupportedException($"{nameof(ViewModelViewConverter)}.ConvertBack is not supported.");
 		}
 
 	}

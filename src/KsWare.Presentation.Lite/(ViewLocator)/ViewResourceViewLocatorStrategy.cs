@@ -29,6 +29,7 @@ namespace KsWare.Presentation.Lite {
 		private readonly AssemblyInfoCache _assemblyInfo = new AssemblyInfoCache();
 
 		public override object GetView(object viewModel) {
+			if (viewModel == null) return null;
 			var view = LoadViewFromResource(viewModel);
 
 			if (view is System.Windows.Markup.IComponentConnector componentConnector)
@@ -43,12 +44,17 @@ namespace KsWare.Presentation.Lite {
 			var viewModelType = viewModel.GetType();
 			var sri = FindViewResource(viewModelType);
 			if (sri == null) return null;
-			var view = ViewLocatorHelper.ReadStreamResource(sri);
+			var view = ViewLocatorHelper.ReadResource(sri,()=>$"ViewModel: {viewModelType.FullName}");
+			sri.Stream.DeleteDebugInformation();
 			return view;
 		}
 
 		public StreamResourceInfo FindViewResource(Type viewModelType) {
-			if (_viewModelViewResourceUriMap.TryGetValue(viewModelType, out var viewResourceUri)) return Application.GetResourceStream(viewResourceUri); ;
+			if (_viewModelViewResourceUriMap.TryGetValue(viewModelType, out var viewResourceUri)) {
+				var sri = Application.GetResourceStream(viewResourceUri);
+				sri.Stream.SetDebugInformation($"ViewModelType: {viewModelType.FullName}");
+				sri.Stream.SetDebugInformation($"ResourceUri: {viewResourceUri}");
+			} ;
 
 			var assemblyName = viewModelType.Assembly.GetName(false).Name;
 			var viewmodelName = viewModelType.FullName;
@@ -73,10 +79,12 @@ namespace KsWare.Presentation.Lite {
 
 					var possibleViewResourceUri = new Uri($"/{assemblyName};component/{possibleMatch}", UriKind.Relative);
 					try {
-						var streamResourceInfo = Application.GetResourceStream(possibleViewResourceUri);
-						if (streamResourceInfo != null) {
+						var sri = Application.GetResourceStream(possibleViewResourceUri);
+						if (sri != null) {
 							_viewModelViewResourceUriMap.Add(viewModelType, possibleViewResourceUri);
-							return streamResourceInfo;
+							sri.Stream.SetDebugInformation($"ViewModelType: {viewModelType.FullName}");
+							sri.Stream.SetDebugInformation($"ResourceUri: {possibleViewResourceUri}");
+							return sri;
 						}
 					}
 					catch (Exception ex) {

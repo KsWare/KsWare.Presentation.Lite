@@ -19,6 +19,10 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(TargetName).xml</DocumentationFile>
   </PropertyGroup>
@@ -26,6 +30,19 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(TargetName).xml</DocumentationFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="  '$(Framework)' == 'NET45' ">
+    <DefineConstants>NET4x</DefineConstants>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="  '$(Framework)' == 'netcoreapp3.0' ">
+    <DefineConstants>NETCOREAPP3x</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="KsWare.Presentation.Lite.csproj.DotSettings" />
+  </ItemGroup>
   
   <ItemGroup>
     <None Include="..\..\icon.png" Link="Properties\icon.png">
@@ -36,6 +53,6 @@
   
   <ItemGroup>
     <PackageReference Include="KsWare.Presentation.Composition" Version="0.1.7" />
-    <PackageReference Include="KsWare.Presentation.Interfaces" Version="0.1.39" />
+    <PackageReference Include="KsWare.Presentation.Interfaces" Version="0.1.40" />
   </ItemGroup>
 </Project>

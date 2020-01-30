@@ -14,6 +14,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -23,35 +24,124 @@ using System.Text;
 using System.Windows.Baml2006;
 using System.Windows.Resources;
 using System.Xaml;
+using System.Xml;
 using XamlReader = System.Windows.Markup.XamlReader;
 
 namespace KsWare.Presentation.Lite {
 	internal class ViewLocatorHelper {
 		// TODO same code as in TemplateConverterHelper/ResourceConverterHelper
 
-		public static object ReadResource(StreamResourceInfo streamResourceInfo) {
+		public static object ReadResource(StreamResourceInfo streamResourceInfo, Func<string> exceptionCallback) {
 			switch (streamResourceInfo.ContentType) {
-				case "application/baml+xml": return ReadPage(streamResourceInfo.Stream);
-				case "application/xaml+xml": return ReadResource(streamResourceInfo.Stream);
+				case "application/baml+xml": return ReadPage(streamResourceInfo.Stream, exceptionCallback);
+				case "application/xaml+xml": return ReadResource(streamResourceInfo.Stream, exceptionCallback);
 				default: return null;
 			}
 		}
 
-		public static object ReadResource(Stream stream) {
+		// public static object ReadStreamResource(StreamResourceInfo streamResourceInfo, Func<string> exceptionCallback) {
+		// 	switch (streamResourceInfo.ContentType) {
+		// 		case "application/baml+xml": return ReadPage(streamResourceInfo.Stream);
+		// 		case "application/xaml+xml": return ReadResource(streamResourceInfo.Stream);
+		// 		default: return null;
+		// 	}
+		// }
+
+		public static object ReadResource(Stream stream, Func<string> exceptionCallback) {
 			// read the stream for build action "Resource"
 			var xamlReader = new XamlReader();
 			return xamlReader.LoadAsync(stream);
 		}
 
-		public static object ReadPage(Stream stream) {
+		public static object ReadPage(Stream stream, Func<string> exceptionCallback) {
 			// read the stream for build action "Page"
-			using (var bamlReader = new Baml2006Reader(stream))
-			using (var writer = new XamlObjectWriter(bamlReader.SchemaContext)) {
-				while (bamlReader.Read()) writer.WriteNode(bamlReader);
-				return writer.Result;
+
+			using (var bamlReader = new Baml2006Reader(stream)) {
+				using (var writer = new XamlObjectWriter(bamlReader.SchemaContext)) {
+					while (bamlReader.Read()) {
+						try { writer.WriteNode(bamlReader); }
+						catch /*1*/ (XamlObjectWriterException ex) {
+							var lineInfo = ((IXamlLineInfo) bamlReader);
+							var errorMessage = ex.Message+"\n\n"+$"Line:{lineInfo.LineNumber}, Position:{lineInfo.LinePosition}";
+							if (exceptionCallback != null) errorMessage += "\n" + exceptionCallback?.Invoke();
+							if (stream.TryGetDebugInformation(out var s)) errorMessage += "\n" + s;
+							//errorMessage += "\nPossible reason: multiple call of InitializeComponent. Check also inline code!";
+							stream.DeleteDebugInformation();
+							try { writer.Close(); } catch(XamlObjectWriterException) { /*WORKAROUND A */} 
+							throw new InvalidDataException(errorMessage, ex);
+						}
+					}
+					return writer.Result;
+				}
+			}
+			// *1* catch XamlObjectWriterException
+			// 'Beim Festlegen der Eigenschaft "System.Windows.ResourceDictionary.DeferrableContent" wurde eine Ausnahme ausgelöst.'
+			// HResult: -2146233088
+			// Inner Exception: { InvalidOperationException}
+			// InvalidOperationException: Die ResourceDictionary-Instanz kann nicht erneut initialisiert werden.
+			// Possible reason: multiple call of InitializeComponent
+			// <x:Code><![CDATA[public ShellView(){InitializeComponent();}]]></x:Code>
+
+
+			// WORKAROUND A)
+			// using IDisposable.Dispose() is calling writer.Close() => throws another exception BEFORE our exception is effective! 
+			// System.Xaml.XamlObjectWriterException: 'XAML-Knotenstream: CurrentObject fehlt vor EndObject.'
+		}
+
+
+		public static object ReadPageDebug(Stream stream, Func<string> exceptionCallback) {
+			// read the stream for build action "Page"
+			using (var bamlReader = new Baml2006Reader(stream)) {
+				var lineInfo = ((IXamlLineInfo) bamlReader);
+
+				using (var writer = new XamlObjectWriter(bamlReader.SchemaContext)) {
+					var indentLevel = 0;
+					while (true) {
+						var ind = new String(' ', Math.Max(0,indentLevel) * 4);
+						try {
+							if (!bamlReader.Read()) break;
+							switch (bamlReader.NodeType) {
+								case XamlNodeType.NamespaceDeclaration:
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} xmlns:{bamlReader.Namespace.Prefix}={bamlReader.Namespace.Namespace}"); break;
+								case XamlNodeType.StartObject:
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} <{bamlReader.Type?.Name}");
+									indentLevel++;
+									break;
+								case XamlNodeType.EndObject: 
+									indentLevel--;
+									ind = new String(' ', Math.Max(0, indentLevel) * 4);
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} >");
+									break;
+								case XamlNodeType.StartMember:
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} {bamlReader.Member.Name}=");
+									indentLevel++;
+									break;
+								case XamlNodeType.EndMember:
+									indentLevel--;
+									ind = new String(' ', Math.Max(0, indentLevel) * 4);
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind}");
+									break;
+								case XamlNodeType.Value:
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} {bamlReader.Value}"); break;
+								case XamlNodeType.GetObject: break;
+								default:
+									Debug.WriteLine($"{lineInfo.LineNumber}:{lineInfo.LinePosition}{ind} {bamlReader.NodeType} {bamlReader.Type?.Name}{bamlReader.Member?.Name}{bamlReader.Value}");
+									break;
+
+							}
+						}
+						catch (Exception ex) { throw; }
+
+						try { writer.WriteNode(bamlReader); }
+						catch (Exception ex) { throw; }
+
+					}
+
+					return writer.Result;
+				}
 			}
 		}
-		
+
 		public static IList<string> GetResourceNames(Assembly assembly) {
 			// var resourceManager = new System.Resources.ResourceManager($"{assembly.GetName(false).Name}.g.resources", assembly);
 			// var resourceSet = resourceManager.GetResourceSet(CultureInfo.CreateSpecificCulture(""), false, true);
@@ -80,13 +170,7 @@ namespace KsWare.Presentation.Lite {
 			// new%20folder/usercontrol1.baml		> ROOTNS.new_folder.usercontrol1
 		}
 
-		public static object ReadStreamResource(StreamResourceInfo streamResourceInfo) {
-			switch (streamResourceInfo.ContentType) {
-				case "application/baml+xml": return ReadPage(streamResourceInfo.Stream);
-				case "application/xaml+xml": return ReadResource(streamResourceInfo.Stream);
-				default: return null;
-			}
-		}
+
 
 		public static IList<string> GetNamespaces(Assembly assembly) {
 			return assembly.GetTypes().Select(t => t.Namespace).OrderBy(s => s).Distinct().ToList();
@@ -126,6 +210,23 @@ namespace KsWare.Presentation.Lite {
 			if (sb.Length > 0) sb.Append(".");
 			sb.Append(n);
 			return sb.ToString();
+		}
+
+		/// <summary>
+		///	Call InitializeComponent for the specified element.
+		/// </summary>
+		/// <param name = "element">The element to initialize</param>
+		/// <remarks>When a view does not contain a code-behind file, we need to call InitializeComponent.</remarks>
+		public static void InitializeComponent(object element) {
+			// var method = element.GetType()
+			// 	.GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
+			// method?.Invoke(element, null);
+
+            var method = element.GetType().GetTypeInfo()
+                .GetDeclaredMethods("InitializeComponent")
+                .SingleOrDefault(m => m.GetParameters().Length == 0);
+            method?.Invoke(element, null);
+
 		}
 
 	}

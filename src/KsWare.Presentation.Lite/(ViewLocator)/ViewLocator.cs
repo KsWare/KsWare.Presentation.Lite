@@ -32,7 +32,7 @@ namespace KsWare.Presentation.Lite {
 		/// Gets or sets the strategy.
 		/// </summary>
 		/// <value>The strategy.</value>
-		private IViewLocatorStrategy Strategy { get; set; } = new ViewResourceViewLocatorStrategy();
+		private IViewLocatorStrategy Strategy { get; set; } = new ViewTypeViewLocatorStrategy();
 
 		/// <summary>
 		/// Creates the view for the specified view model.
