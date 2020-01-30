@@ -1,20 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿// ***********************************************************************
+// Assembly         : KsWare.Presentation.Lite
+// Author           : SchreinerK
+// Created          : 2020-01-28
+//
+// ***********************************************************************
+// <copyright file="DebugHint.cs" company="KsWare">
+//     Copyright © by KsWare. All rights reserved.
+// </copyright>
+// <summary></summary>
+// ***********************************************************************
+
+using System;
 using System.Reflection;
-using System.Text;
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Data;
 using System.Windows.Markup;
 using System.Xaml;
 
-namespace KsWare.Presentation.Lite {
+namespace KsWare.Presentation.Lite.MarkupExtensions {
 
+	/// <summary>
+	/// Class DebugHint.
+	/// Implements the <see cref="System.Windows.Markup.MarkupExtension" />
+	/// </summary>
+	/// <seealso cref="System.Windows.Markup.MarkupExtension" />
 	[MarkupExtensionReturnType(typeof(object))]
 	public class DebugHint : MarkupExtension {
-
-		public DebugHint() {}
 
 		/// <summary>
 		/// Gets or sets the type of the view. use {x:Type} Markup syntax, the name as string does not work for Navigation
@@ -23,12 +34,17 @@ namespace KsWare.Presentation.Lite {
 		public object ViewType { get; set; }
 
 		// The only syntax I got to work is:
-		//   Hint="{ksl:DebugHint ViewType={x:Type toolbar:Toolbar2View}}"
+		//   DebugHint="{ksl:DebugHint ViewType={x:Type toolbar:Toolbar2View}}"
 		// Type in Constructor=> XamlParseException
 		// Type in Property=> XamlParseException
 		// This I would me wish:
-		//   Hint="{ksl:DebugHint toolbar:Toolbar2View}"
+		//   DebugHint="{ksl:DebugHint toolbar:Toolbar2View}"
 
+		/// <summary>
+		/// When implemented in a derived class, returns an object that is provided as the value of the target property for this markup extension.
+		/// </summary>
+		/// <param name="serviceProvider">A service provider helper that can provide services for the markup extension.</param>
+		/// <returns>The object value to set on the property where the extension is applied.</returns>
 		public override object ProvideValue(IServiceProvider serviceProvider) {
 			// ITypeDescriptorContext, IServiceProvider, IXamlTypeResolver, IUriContext, IAmbientProvider, IXamlSchemaContextProvider, IRootObjectProvider, IXamlNamespaceResolver, IProvideValueTarget, IXamlNameResolver, IDestinationTypeProvider
 			// 
@@ -57,7 +73,7 @@ namespace KsWare.Presentation.Lite {
 				$"\tTarget: {targetObject?.GetType().Name}{F(" Name={0}", name)}{F(" AutomationId={0}", automationId)}" + "\n" +
 				F("\tTargetProperty: {0}\n", targetPropertyName) +
 				F("\tLineInfo: {0}\n", xamlLineInfoText) +
-				$"\tView: {(targetObject as ViewModelPresenter)?.HintType?.FullName ?? (ViewType as Type)?.FullName ?? ViewType}"
+				$"\tView: {(targetObject as ViewModelPresenter)?.ViewTypeHint?.FullName ?? (ViewType as Type)?.FullName ?? ViewType}"
 			);
 
 			var r = targetObject.GetDebugInformation();
@@ -65,6 +81,12 @@ namespace KsWare.Presentation.Lite {
 		}
 
 		// conditional Format
+		/// <summary>
+		/// fs the specified format.
+		/// </summary>
+		/// <param name="format">The format.</param>
+		/// <param name="value">The value.</param>
+		/// <returns>System.String.</returns>
 		private static string F(string format, string value) {
 			if (string.IsNullOrEmpty(value)) return "";
 			if (format?.Contains("{0}")??false) return string.Format(format, value);

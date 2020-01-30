@@ -9,17 +9,37 @@ namespace KsWare.Presentation.Lite {
 		//private static ObjectIDGenerator _idGenerator=new ObjectIDGenerator();
 		private static readonly ConditionalWeakTable<object, object> _weakTable=new ConditionalWeakTable<object, object>();
 
-		public static void SetDebugInformation(this object o, string information) {
-			if(!_weakTable.TryGetValue(o, out var value))
+		public static void SetDebugInformation(this object o, string information, bool overwrite = false) {
+			if(!_weakTable.TryGetValue(o, out var oldValue))
 			{
 				_weakTable.Add(o, information);
 			}
 			else {
+				information = overwrite ? information : oldValue + "\n" + information;
 #if NETCOREAPP3x
 				_weakTable.AddOrUpdate(o, value + "\n" + information);
 #else
 				_weakTable.Remove(o);
-				_weakTable.Add(o, value + "\n" + information);
+				_weakTable.Add(o, information);
+#endif
+
+			}
+		}
+
+		public static void SetDebugInformation(this object o, string format, string value, bool overwrite = false) {
+			if (format != null && format.Contains("{0}")) value = string.Format(format, value);
+			else value = $"{format}: {value}";
+
+			if (!_weakTable.TryGetValue(o, out var oldValue)) {
+				_weakTable.Add(o, value);
+			}
+			else {
+				value = overwrite ? value : oldValue + "\n" + value;
+#if NETCOREAPP3x
+				_weakTable.AddOrUpdate(o, value + "\n" + information);
+#else
+				_weakTable.Remove(o);
+				_weakTable.Add(o, value + "\n" + value);
 #endif
 
 			}

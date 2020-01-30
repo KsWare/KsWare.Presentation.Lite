@@ -51,15 +51,28 @@ namespace KsWare.Presentation.Lite {
 		}
 
 
-		//TODO update docu
+		/// <summary>
+		/// Gets or sets the debug hint.
+		/// </summary>
+		/// <value>The debug hint.</value>
+		/// <remarks><para>The DebugHint is used to show in exception.</para>
+		/// <para>You can use DebugHint markup extension to set the property.</para>
+		/// </remarks>
+		/// <example>
+		/// <code languange="XAML">
+		/// &lt;ksl:ViewModelPresenter
+		///	    DataContext="{Binding MenuControls}"
+		///     DebugHint="{ksl:DebugHint ViewType={x:Type menuControls:MenuControlsView}}"/&gt;
+		/// </code>
+		/// </example>
+		public string DebugHint { get; set; }
+
 		/// <summary>
 		/// Set this property the expected view type.
 		/// </summary>
 		/// <value>The hint.</value>
-		/// <remarks>The hint is useful to navigate directly to the view.</remarks>
-		public string Hint { get; set; }
-
-		public Type HintType { get; set; }
+		/// <remarks>The hint is useful to navigate directly to the view and/or to mark it as 'in use'.</remarks>
+		public Type ViewTypeHint { get; set; }
 
 		// private object OnCoerceDataContext(object baseValue) {
 		// 	var binding = BindingOperations.GetBinding(this, DataContextProperty);
