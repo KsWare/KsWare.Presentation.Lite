@@ -29,10 +29,15 @@ namespace KsWare.Presentation.Lite {
 		private readonly AssemblyInfoCache _assemblyInfo = new AssemblyInfoCache();
 
 		public override object GetView(object viewModelOrType) => LoadViewFromResource(viewModelOrType);
+		public override Type GetViewType(object viewModelOrType) {
+			throw new NotSupportedException($"GetViewType is not support in this strategy. Strategy: {this.GetType().AssemblyQualifiedName}");
+		}
 
 		private object LoadViewFromResource(object viewModel) {
 			if (viewModel == null) return null;
 			var viewModelType = viewModel is Type type ? type : viewModel.GetType();
+			if (viewModelType == typeof(object)) { return new ViewModelPresenter(); }
+			if (viewModelType == typeof(ViewModelPresenter)) { return new ViewModelPresenter(); }
 			var sri = FindViewResource(viewModelType);
 			if (sri == null) return null;
 			var view = ViewLocatorHelper.ReadResource(sri,()=>$"ViewModel: {viewModelType.FullName}");

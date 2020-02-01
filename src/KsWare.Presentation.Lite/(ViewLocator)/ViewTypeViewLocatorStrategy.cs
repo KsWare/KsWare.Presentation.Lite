@@ -22,20 +22,26 @@ namespace KsWare.Presentation.Lite {
 
 		public override object GetView(object viewModelOrType) => LoadViewWithActivator(viewModelOrType);
 
-		private object LoadViewWithActivator(object viewModel) {
-			if (viewModel == null) return null;
-			var viewModelType = viewModel is Type type ? type : viewModel.GetType();
-			var viewType = GetViewType(viewModelType);
-			if (viewType == null) return null;
+		public override Type GetViewType(object viewModelOrType) {
+			if (viewModelOrType == null) return null;
+			var viewModelType = viewModelOrType is Type type ? type : viewModelOrType.GetType();
+			var viewType = FindViewType(viewModelType);
+			return viewType;
+		}
 
+		private object LoadViewWithActivator(object viewModelOrType) {
+			var viewType = GetViewType(viewModelOrType);
+			if (viewType == null) return null;
 			var view = Activator.CreateInstance(viewType);
 			ViewLocatorHelper.InitializeComponent(view);
-			if(view is FrameworkElement fe && !(viewModel is Type)) fe.DataContext=viewModel;
+			if(view is FrameworkElement fe && !(viewModelOrType is Type)) fe.DataContext=viewModelOrType;
 			return view;
 		}
 
-		public Type GetViewType(Type viewModelType) {
+		public Type FindViewType(Type viewModelType) {
 			if (_viewModelViewMap.TryGetValue(viewModelType, out var viewType)) return viewType;
+			if (viewModelType == typeof(object)) { return typeof(ViewModelPresenter); }
+			if (viewModelType == typeof(ViewModelPresenter)) { return typeof(ViewModelPresenter); }
 			var triedTypes = new List<string>();
 			try {
 				var viewmodelName = viewModelType.FullName??"";

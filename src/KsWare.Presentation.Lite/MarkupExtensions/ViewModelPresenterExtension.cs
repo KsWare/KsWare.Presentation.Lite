@@ -28,8 +28,8 @@ namespace KsWare.Presentation.Lite.MarkupExtensions {
 	/// <example>
 	/// <code>
 	/// &lt;ListBox 
-	/// ItemsSource="{Items}"
-	/// ItemTemplate="{ViewModelPresenter ViewTypeHint={x:Type MyView}}" /&gt;
+	///     ItemsSource="{Items}"
+	///     ItemTemplate="{ViewModelPresenter DataType={x:Type MyViewModel} ViewTypeHint={x:Type MyView}}" /&gt;
 	/// </code>
 	/// </example>
 	public class ViewModelPresenterExtension : MarkupExtension {
@@ -39,7 +39,7 @@ namespace KsWare.Presentation.Lite.MarkupExtensions {
 		/// Gets or sets the type for which view model type the view shall be created.
 		/// </summary>
 		/// <value>The type of the view model.</value>
-		/// <remarks>If not specified the markup extension throws a <see cref="ArgumentNullException"/>.</remarks>
+		/// <remarks>If DataType is not specified a <see cref="ViewModelPresenter"/> is returned. </remarks>
 		public object DataType { get; set; }
 
 		/// <summary>
@@ -55,7 +55,7 @@ namespace KsWare.Presentation.Lite.MarkupExtensions {
 
 			var debugInfo = new DebugInformation(serviceProvider) {ViewType = ViewTypeHint as Type};
 
-			if(DataType==null) throw  new ArgumentNullException(nameof(DataType), $"DataType not specified for {nameof(ViewModelPresenterExtension)}\n\nExtended Information:\n{debugInfo}");
+			if (DataType == null) DataType = typeof(object);
 
 			var provideValueTarget = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
 			var targetObject = provideValueTarget.TargetObject as DependencyObject;

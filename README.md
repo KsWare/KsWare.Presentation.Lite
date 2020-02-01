@@ -31,10 +31,17 @@ The ViewModelPresenter presents the matching view for the current data context.
 <ViewModelPresenter/>
 ```
 ## ViewModelPresenterExtension
+With specification of the type:
 ```xml
 <ListBox 
-    ItemsSource="{Items}"
+    ItemsSource="{Binding Items}"
 	ItemTemplate="{ViewModelPresenter DataType={x:Type MyViewModel}, ViewTypeHint={x:Type MyView}}" />
+```
+Without specification of the type:
+```xml
+<ItemsControl 
+    ItemsSource="{Binding Items}" 
+    ItemTemplate="{ViewModelPresenter}" />
 ```
 
 ## ViewModelViewConverter

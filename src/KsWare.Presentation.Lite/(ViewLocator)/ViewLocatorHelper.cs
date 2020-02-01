@@ -15,6 +15,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -24,13 +25,16 @@ using System.Text;
 using System.Windows;
 using System.Windows.Baml2006;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using System.Windows.Resources;
 using System.Xaml;
 using System.Xml;
 using XamlReader = System.Windows.Markup.XamlReader;
 
 namespace KsWare.Presentation.Lite {
-	internal class ViewLocatorHelper {
+
+	[SuppressMessage("ReSharper", "HollowTypeName", Justification = "do you know a better name? no? then shut up ;-)")]
+	internal static class ViewLocatorHelper {
 		// TODO same code as in TemplateConverterHelper/ResourceConverterHelper
 
 		public static object ReadResource(StreamResourceInfo streamResourceInfo, Func<string> exceptionCallback) {
@@ -40,14 +44,6 @@ namespace KsWare.Presentation.Lite {
 				default: return null;
 			}
 		}
-
-		// public static object ReadStreamResource(StreamResourceInfo streamResourceInfo, Func<string> exceptionCallback) {
-		// 	switch (streamResourceInfo.ContentType) {
-		// 		case "application/baml+xml": return ReadPage(streamResourceInfo.Stream);
-		// 		case "application/xaml+xml": return ReadResource(streamResourceInfo.Stream);
-		// 		default: return null;
-		// 	}
-		// }
 
 		public static object ReadResource(Stream stream, Func<string> exceptionCallback) {
 			// read the stream for build action "Resource"
@@ -89,7 +85,6 @@ namespace KsWare.Presentation.Lite {
 			// using IDisposable.Dispose() is calling writer.Close() => throws another exception BEFORE our exception is effective! 
 			// System.Xaml.XamlObjectWriterException: 'XAML-Knotenstream: CurrentObject fehlt vor EndObject.'
 		}
-
 
 		public static object ReadPageDebug(Stream stream, Func<string> exceptionCallback) {
 			// read the stream for build action "Page"
@@ -172,8 +167,6 @@ namespace KsWare.Presentation.Lite {
 			// new%20folder/usercontrol1.baml		> ROOTNS.new_folder.usercontrol1
 		}
 
-
-
 		public static IList<string> GetNamespaces(Assembly assembly) {
 			return assembly.GetTypes().Select(t => t.Namespace).OrderBy(s => s).Distinct().ToList();
 		}
@@ -238,47 +231,93 @@ namespace KsWare.Presentation.Lite {
 		}
 
 		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
+		// TODO copy new comments to ResourceConverter and remove this code
+		[Obsolete("Obsolete",true)]
 		public static DataTemplate CreateDataTemplateFromUIElement(UIElement content) {
-			var contentXaml = SerializeToXaml(content);
-			var templateXaml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
-{contentXaml}
-</DataTemplate>";
+			#region DISABLED, not working with all features 
+			// Reason: Bindings and/or other markup extensions are not serialized!
+
+			// 			var contentXaml = SerializeToXaml(content);
+			// 			var templateXaml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+			// <DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+			// {contentXaml}
+			// </DataTemplate>";
+
+			// 			var sr = new StringReader(templateXaml);
+			// 			var xr = XmlReader.Create(sr);
+			// 			var dataTemplate = (DataTemplate)XamlReader.Load(xr);
+			// 			return dataTemplate;
+			#endregion
+
+			#region DISABLED not working with UserControl(and other XAML based types)
+			// Reason DataTemplates from UIElements (UserControl) don't work if they have no InitializeComponent call.
+			// var factory = new FrameworkElementFactory(content.GetType());
+			// var dt = new DataTemplate {VisualTree = factory};
+			// return dt;
+			#endregion
 
 
-			var sr = new StringReader(templateXaml);
-			var xr = XmlReader.Create(sr);
-			var dataTemplate = (DataTemplate)XamlReader.Load(xr);
-			return dataTemplate;
-		}
-
-		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
-		public static ControlTemplate CreateControlTemplateFromUIElement(UIElement content) {
-			var contentXaml = SerializeToXaml(content);
-			var templateXaml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
-{contentXaml}
-</ControlTemplate>";
-
-
-			var sr = new StringReader(templateXaml);
-			var xr = XmlReader.Create(sr);
-			var controlTemplate = (ControlTemplate)XamlReader.Load(xr);
-			return controlTemplate;
-		}
-
-		// source https://github.com/KsWare/KsWare.Presentation.Converters/blob/features/kux/src/KsWare.Presentation.Converters/ResourceConverterHelper.cs
-		public static string SerializeToXaml(UIElement element) {
-			var xaml = System.Windows.Markup.XamlWriter.Save(element);
-
-			using (var stream = new MemoryStream()) {
-				using (var streamWriter = new StreamWriter(stream, Encoding.UTF8, 64 * 1024, true)) {
-					streamWriter.Write(xaml);
-				}
-
-				stream.Position = 0;
-				return new StreamReader(stream).ReadToEnd();
+			var contentType = content.GetType();
+			if (typeof(IComponentConnector).IsAssignableFrom(contentType)) {
+				// we don't know if there code behind calling InitializeComponent, so we get the safe way adding a wrapper which will do this
+				contentType = typeof(InitializeComponentWrapper<>).MakeGenericType(contentType);
 			}
+			// FrameworkElementFactory is deprecated, but the only way (i know) to use generic types.
+			var factory = new FrameworkElementFactory(contentType);
+			var dt = new DataTemplate { VisualTree = factory };
+			return dt;
+		}
+
+		public static DataTemplate CreateDataTemplate(Type contentType) {
+			if (typeof(IComponentConnector).IsAssignableFrom(contentType)) {
+				// we don't know if there code behind calling InitializeComponent, so we get the safe way adding a wrapper which will do this
+				contentType = typeof(InitializeComponentWrapper<>).MakeGenericType(contentType);
+			}
+
+			// FrameworkElementFactory is deprecated, but the only way (i know) to use generic types.
+			var factory = new FrameworkElementFactory(contentType);
+			var template = new DataTemplate(contentType) { VisualTree = factory };
+			return template;
+		}
+
+		public static ControlTemplate CreateControlTemplate(Type contentType) {
+			if (typeof(IComponentConnector).IsAssignableFrom(contentType)) {
+				// we don't know if there code behind calling InitializeComponent, so we get the safe way adding a wrapper which will do this
+				contentType = typeof(InitializeComponentWrapper<>).MakeGenericType(contentType);
+			}
+			
+			// FrameworkElementFactory is deprecated, but the only way (i know) to use generic types.
+			var factory = new FrameworkElementFactory(contentType);
+			var template = new ControlTemplate(contentType) { VisualTree = factory };
+			return template;
+		}
+
+
+		//TODO NOT USED move to ResourceConverter
+		[Obsolete("Obsolete", true)]
+		public static DataTemplate CreateTemplateViaXaml(Type viewModelType, Type viewType) {
+			// Source: https://www.ikriv.com/dev/wpf/DataTemplateCreation/
+			// this is the suggested way, BUT not working w/o code behind calling InitializeComponent()!
+			// and not working with generic types
+
+			if(viewModelType.IsGenericType || viewType.IsGenericType) throw new NotSupportedException("Generic types are not supported.");
+
+			const string xamlTemplate = "<DataTemplate DataType=\"{{x:Type vm:{0}}}\"><v:{1} /></DataTemplate>";
+			var xaml = string.Format(xamlTemplate, viewModelType.Name, viewType.Name, viewModelType.Namespace, viewType.Namespace);
+
+			var context = new ParserContext();
+
+			context.XamlTypeMapper = new XamlTypeMapper(new string[0]);
+			context.XamlTypeMapper.AddMappingProcessingInstruction("vm", viewModelType.Namespace, viewModelType.Assembly.FullName);
+			context.XamlTypeMapper.AddMappingProcessingInstruction("v", viewType.Namespace, viewType.Assembly.FullName);
+
+			context.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
+			context.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
+			context.XmlnsDictionary.Add("vm", "vm");
+			context.XmlnsDictionary.Add("v", "v");
+
+			var template = (DataTemplate)XamlReader.Parse(xaml, context);
+			return template;
 		}
 
 	}

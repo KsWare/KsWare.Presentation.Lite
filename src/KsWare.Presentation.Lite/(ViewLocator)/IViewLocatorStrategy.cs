@@ -11,6 +11,9 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
+
+using System;
+
 namespace KsWare.Presentation.Lite {
 
 	/// <summary>
@@ -24,6 +27,14 @@ namespace KsWare.Presentation.Lite {
 		/// <param name="viewModelOrType">The view model.</param>
 		/// <returns>The matching view or <c>null if no view was found.</c></returns>
 		object GetView(object viewModelOrType);
+
+		/// <summary>
+		/// Gets the view type for the specified view model.
+		/// </summary>
+		/// <param name="viewModelOrType">The view model.</param>
+		/// <returns>The matching view type or <c>null if no view was found.</c></returns>
+		Type GetViewType(object viewModelOrType);
+
 	}
 
 }

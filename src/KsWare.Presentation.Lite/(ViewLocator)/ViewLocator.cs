@@ -11,6 +11,8 @@
 // </copyright>
 // <summary></summary>
 // ***********************************************************************
+
+using System;
 using System.ComponentModel.Composition;
 
 namespace KsWare.Presentation.Lite {
@@ -40,6 +42,14 @@ namespace KsWare.Presentation.Lite {
 		/// <param name="viewModelOrType">The view model.</param>
 		/// <returns>The matching view or <c>null if no view was found.</c></returns>
 		public object CreateView(object viewModelOrType) => Strategy.GetView(viewModelOrType);
+
+		/// <summary>
+		/// Gets the view type for the specified view model.
+		/// </summary>
+		/// <param name="viewModelOrType">The view model.</param>
+		/// <returns>The matching view type or <c>null if no view was found.</c></returns>
+		public Type GetViewType(object viewModelOrType) => Strategy.GetViewType(viewModelOrType);
+
 	}
 
 }

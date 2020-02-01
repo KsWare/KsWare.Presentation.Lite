@@ -3,8 +3,6 @@
 // Author           : SchreinerK
 // Created          : 2020-01-27
 //
-// Last Modified By : SchreinerK
-// Last Modified On : 2020-01-28
 // ***********************************************************************
 // <copyright file="ViewModelViewConverter.cs" company="KsWare">
 //     Copyright © by KsWare. All rights reserved.
@@ -13,7 +11,9 @@
 // ***********************************************************************
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -33,44 +33,48 @@ namespace KsWare.Presentation.Lite {
 		public static readonly ViewModelViewConverter Default=new ViewModelViewConverter();
 
 		/// <inheritdoc />
+		[SuppressMessage("ReSharper", "TooManyArguments", Justification = "IValueConverter implementation")]
+		[SuppressMessage("ReSharper", "MethodTooLong", Justification = "it makes no sense to split this method")]
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+			//TODO revise throwing exceptions in converter.
 			if (value == null) {
 				if (targetType.IsClass) return null;
 				throw new InvalidOperationException($"The conversion is not supported. Value: null, TargetType: {targetType?.GetType().FullName ?? "null"}");
 			}
 
-			var view = ViewLocator.Default.CreateView(value);
-			if (view == null) {
-				// throw new NullReferenceException($"Matching view not available. Value: {value?.GetType().FullName ?? "null"}");
-				Debug.WriteLine($"ViewModelViewConverter: No view for: {value?.GetType().FullName ?? "null"}");
-				return null;
-			}
+			var viewType = ViewLocator.Default.GetViewType(value);
 
 			if (targetType == typeof(DataTemplate)) {
-				return ViewLocatorHelper.CreateDataTemplateFromUIElement((UIElement) view);
+				return ViewLocatorHelper.CreateDataTemplate(viewType);
 			}
 			if (targetType == typeof(HierarchicalDataTemplate)) {
 				throw new NotImplementedException($"Conversion to HierarchicalDataTemplate is not implemented. Converter: {GetType().FullName}");
 				// return ViewLocatorHelper.CreateHierarchicalDataTemplateFromUIElement((UIElement)view);
 			}
 			if (targetType == typeof(ControlTemplate)) {
-				return ViewLocatorHelper.CreateControlTemplateFromUIElement((UIElement)view);
+				return ViewLocatorHelper.CreateControlTemplate(viewType);
 			}			
 			if (targetType == typeof(ItemContainerTemplate)) {
 				throw new NotImplementedException($"Conversion to ItemContainerTemplate is not implemented. Converter: {GetType().FullName}");
 				// return ViewLocatorHelper.CreateItemContainerTemplateFromUIElement((UIElement)view);
 			}
-			if (targetType.IsInstanceOfType(view)) {
+			if (targetType.IsAssignableFrom(viewType)) {
+				var view = ViewLocator.Default.CreateView(value);
+				if (view == null) {
+					// throw new NullReferenceException($"Matching view not available. Value: {value?.GetType().FullName ?? "null"}");
+					Debug.WriteLine($"ViewModelViewConverter: No view for: {value?.GetType().FullName ?? "null"}");
+					return null;
+				}
+
 				return view;
 			}
 
-			throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {view?.GetType().FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}, Converter: {nameof(ViewModelViewConverter)}");
-			
-			
+			throw new InvalidOperationException($"The conversion is not supported. Value: {value?.GetType().FullName??"null"}, View: {viewType.FullName ?? "null"}, TargetType: {targetType?.GetType().FullName??"null"}, Converter: {nameof(ViewModelViewConverter)}");
 		}
 
 		/// <inheritdoc />
 		/// <exception cref="NotSupportedException"></exception>
+		[SuppressMessage("ReSharper", "TooManyArguments", Justification = "IValueConverter implementation")]
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
 			throw new NotSupportedException($"ConvertBack is not supported. Converter: {GetType().FullName}");
 		}
