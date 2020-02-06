@@ -20,7 +20,6 @@ using System.Windows.Data;
 
 namespace KsWare.Presentation.Lite {
 
-	// TODO ViewModelViewConverter basic implementation
 	/// <summary>
 	/// Converts ViewModel into matching views .
 	/// Implements the <see cref="System.Windows.Data.IValueConverter" />
@@ -77,10 +76,6 @@ namespace KsWare.Presentation.Lite {
 		[SuppressMessage("ReSharper", "TooManyArguments", Justification = "IValueConverter implementation")]
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
 			throw new NotSupportedException($"ConvertBack is not supported. Converter: {GetType().FullName}");
-		}
-
-		private void Trace(string value) {
-
 		}
 
 	}

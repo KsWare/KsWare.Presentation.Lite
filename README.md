@@ -6,10 +6,13 @@
 - [ViewModelPresenter](##ViewModelPresenter)
 - [ViewModelViewConverter](##ViewModelViewConverter)
 - [IViewLocatorStrategy](##IViewLocatorStrategy)
-- [(Debug)Binding](##(Debug)Binding))
+- [(Debug)Binding](##(Debug)Binding)
 - [DebugHint](##DebugHint)
 - [ObjectDebugExtensions](##ObjectDebugExtensions)
 - [ViewModelPresenterExtension](##ViewModelPresenterExtension)
+- [Adorner](##Adorner)
+- [RelayCommand](##RelayCommand) 
+- [SharedResourceDictionary](##SharedResourceDictionary)
 
 ## NotifyPropertyChangedBase
 Base class which implements INotifyPropertyChanged.
@@ -87,3 +90,18 @@ void MethodB(Stream stream){
 }
 
 ```
+
+## Adorner
+
+Extents the default Adorner with add/remove functionality
+
+## RelayCommand
+
+An ICommand implementation which relays the functionality to custom methods.
+
+## SharedResourceDictionary
+
+A ResourceDictionary which shares merged dictionary instead of duplicates.
+
+___basic implementation___
+

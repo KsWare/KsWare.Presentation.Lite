@@ -63,10 +63,9 @@ namespace KsWare.Presentation.Lite {
 				throw new TypeLoadException($"Matching view not found for \"{viewModelType.FullName}\".\nPossible view types:\n\t{string.Join("\n\t", triedTypes)}");
 				return null;
 			}
-			catch (Exception e) {
-				Console.WriteLine(e);
-				throw;
-			}
+			// catch (Exception ee) {
+			// 	throw;
+			// }
 			finally {
 				if (viewType != null) {
 					_viewModelViewMap.Add(viewModelType, viewType);

@@ -1,6 +1,11 @@
 ﻿# ChangeLog
 KsWare.Presentation.Lite
 
+#### 2020-02-06
+- NEW Adorner
+- NEW RelayCommand, 
+- NEW SharedResourceDictionary
+
 #### [2020-02-01]
 - UPD ViewLocator
     1. NEW InitializeComponentWrapper to support views with no code behind for DataTemplete/ControlTemplate
