@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ns {
+namespace KsWare.Presentation.Lite.TestApp {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace ns {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ns.Resource1", typeof(Resource1).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("KsWare.Presentation.Lite.TestApp.Resource1", typeof(Resource1).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -3,8 +3,6 @@
 // Author           : SchreinerK
 // Created          : 2020-01-27
 //
-// Last Modified By : SchreinerK
-// Last Modified On : 2020-01-27
 // ***********************************************************************
 // <copyright file="ViewResourceViewLocatorStrategy.cs" company="KsWare">
 //     Copyright © by KsWare. All rights reserved.
@@ -12,12 +10,9 @@
 // <summary></summary>
 // ***********************************************************************
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Resources;
 
