@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
+    <TargetFrameworks>net5.0-windows;netcoreapp3.1;net45</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Copyright © by KsWare. All rights reserved.</Copyright>
@@ -35,8 +35,11 @@
     <DefineConstants>NET4x</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="  '$(Framework)' == 'net5.0' ">
+    <DefineConstants>NET50</DefineConstants>
+  </PropertyGroup>
 
-  <PropertyGroup Condition="  '$(Framework)' == 'netcoreapp3.0' ">
+  <PropertyGroup Condition="  '$(Framework)' == 'netcoreapp3.1' ">
     <DefineConstants>NETCOREAPP3x</DefineConstants>
   </PropertyGroup>
 
