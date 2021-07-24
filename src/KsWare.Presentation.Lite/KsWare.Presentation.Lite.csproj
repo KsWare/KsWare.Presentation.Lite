@@ -55,7 +55,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="KsWare.Presentation.Composition" Version="0.1.7" />
-    <PackageReference Include="KsWare.Presentation.Interfaces" Version="0.1.40" />
+    <PackageReference Include="KsWare.Presentation.Composition" Version="0.2.0" />
+    <PackageReference Include="KsWare.Presentation.Interfaces" Version="0.2.1" />
   </ItemGroup>
 </Project>
